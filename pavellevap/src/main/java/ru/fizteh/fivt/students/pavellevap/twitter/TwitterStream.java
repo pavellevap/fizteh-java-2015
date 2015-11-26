@@ -1,8 +1,10 @@
 package ru.fizteh.fivt.students.pavellevap.twitter;
 
 import java.util.*;
+import com.beust.jcommander.JCommander;
 import twitter4j.*;
-import com.beust.jcommander.*;
+
+
 
 public class TwitterStream {
     static final int SECOND = 1000;
@@ -15,20 +17,17 @@ public class TwitterStream {
         if (twitterStreamArgs.isHelpMode()) {
             jCommander.setProgramName("TwitterStream");
             jCommander.usage();
-        }
-        else {
+        } else {
             if (twitterStreamArgs.getKeyword() == "") {
-                System.out.println("Необходимо указать ключевые слова для поиска\n" +
-                        "Для справки см. TwitterStream --help");
-            }
-            else {
+                System.out.println("Необходимо указать ключевые слова для поиска\n"
+                        + "Для справки см. TwitterStream --help");
+            } else {
                 if (twitterStreamArgs.isStreamMode()) {
                     workInStreamMode(twitterStreamArgs);
                 } else {
                     try {
                         workInNormalMode(twitterStreamArgs);
-                    }
-                    catch(TwitterException ex) {
+                    } catch (TwitterException ex) {
                         System.out.println("Не удалось выполнить запрос. Возможно ошибка соединения");
                         System.err.println(ex.getMessage());
                         System.exit(1);

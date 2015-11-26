@@ -5,3 +5,4 @@ twitter4j/*
 target/*
 *.iml
 jcommander/*
+dependency/*
