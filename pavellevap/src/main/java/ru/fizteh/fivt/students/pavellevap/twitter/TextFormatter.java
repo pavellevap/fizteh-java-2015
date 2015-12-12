@@ -5,6 +5,7 @@ import twitter4j.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 public class TextFormatter {
 
@@ -27,22 +28,22 @@ public class TextFormatter {
         return ESC + color + text + ESC + NORMAL_MODE;
     }
 
-    static String getTweetDate(Status tweet) {
+    static String getFormattedDate(Date tweetDate, Date currDate) {
         StringBuilder dateInText = new StringBuilder();
 
-        LocalDateTime currDate = LocalDateTime.now();
-        LocalDateTime tweetDate = tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime currTime = currDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime tweetTime = tweetDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 
-        if (ChronoUnit.MINUTES.between(tweetDate, currDate) < TWO) {
+        if (ChronoUnit.MINUTES.between(tweetTime, currTime) < TWO) {
             dateInText.append("Только что");
-        } else if (ChronoUnit.HOURS.between(tweetDate, currDate) == ZERO) {
-            dateInText.append(ChronoUnit.MINUTES.between(tweetDate, currDate)).append(" минут назад");
-        } else if (ChronoUnit.DAYS.between(tweetDate, currDate) == ZERO) {
-            dateInText.append(ChronoUnit.HOURS.between(tweetDate, currDate)).append(" часов назад");
-        } else if (ChronoUnit.DAYS.between(tweetDate, currDate) == ONE) {
+        } else if (ChronoUnit.HOURS.between(tweetTime, currTime) == ZERO) {
+            dateInText.append(ChronoUnit.MINUTES.between(tweetTime, currTime)).append(" минут назад");
+        } else if (ChronoUnit.DAYS.between(tweetTime, currTime) == ZERO) {
+            dateInText.append(ChronoUnit.HOURS.between(tweetTime, currTime)).append(" часов назад");
+        } else if (ChronoUnit.DAYS.between(tweetTime, currTime) == ONE) {
             dateInText.append("Вчера");
         } else {
-            dateInText.append(ChronoUnit.DAYS.between(tweetDate, currDate)).append(" дней назад");
+            dateInText.append(ChronoUnit.DAYS.between(tweetTime, currTime)).append(" дней назад");
         }
 
         return dateInText.toString();
@@ -54,10 +55,9 @@ public class TextFormatter {
 
     static String getTextForTweet(Status tweet, boolean isStream) {
         StringBuilder textForTweet = new StringBuilder();
-
         if (!isStream) {
             textForTweet.append("[").
-                    append(makeColor(getTweetDate(tweet), RED)).
+                    append(makeColor(getFormattedDate(tweet.getCreatedAt(), new Date()), RED)).
                     append("] ");
         }
 
@@ -80,3 +80,5 @@ public class TextFormatter {
         return textForTweet.toString();
     }
 };
+
+

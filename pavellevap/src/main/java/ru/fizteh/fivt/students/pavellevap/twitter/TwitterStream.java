@@ -4,8 +4,6 @@ import java.util.*;
 import com.beust.jcommander.JCommander;
 import twitter4j.*;
 
-
-
 public class TwitterStream {
     static final int SECOND = 1000;
     static final int MAX_AMOUNT_OF_TRIES = 2;
@@ -48,7 +46,7 @@ public class TwitterStream {
             try {
                 Thread.sleep(SECOND);
             } catch (Exception ex) {
-                System.err.println(ex.getMessage());
+                throw new RuntimeException();
             }
         }
     }
@@ -86,6 +84,7 @@ public class TwitterStream {
                 break;
             }
         }
+
     }
 
     static Queue<Status> prepareForListening(TwitterStreamArgs args) {
@@ -102,9 +101,8 @@ public class TwitterStream {
 
             @Override
             public void onException(Exception e) {
-                System.out.println("Что то пошло не так во время прослушивания.");
-                System.out.println(e.getMessage());
-                System.exit(1);
+                System.err.println("Что то пошло не так во время прослушивания.");
+                System.err.println(e.getMessage());
             }
         };
 
