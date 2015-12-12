@@ -26,7 +26,7 @@ public class TwitterStream {
                     try {
                         workInNormalMode(twitterStreamArgs);
                     } catch (TwitterException ex) {
-                        System.out.println("Не удалось выполнить запрос. Возможно ошибка соединения");
+                        System.err.println("Не удалось выполнить запрос. Возможно ошибка соединения");
                         System.err.println(ex.getMessage());
                         System.exit(1);
                     }
