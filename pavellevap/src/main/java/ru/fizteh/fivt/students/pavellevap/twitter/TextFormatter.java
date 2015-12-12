@@ -13,16 +13,16 @@ public class TextFormatter {
 
     static final String NORMAL_MODE = "[0m";
 
-    static final String BLACK =       "[30m";
-    static final String RED =         "[31m";
-    static final String GREEN =       "[32m";
-    static final String YELLOW =      "[33m";
-    static final String BLUE =        "[34m";
-    static final String WHITE =       "[37m";
+    static final String BLACK = "[30m";
+    static final String RED = "[31m";
+    static final String GREEN = "[32m";
+    static final String YELLOW = "[33m";
+    static final String BLUE = "[34m";
+    static final String WHITE = "[37m";
 
-    static final Long ZERO =              0L;
-    static final Long ONE =               1L;
-    static final Long TWO =               2L;
+    static final Long ZERO = 0L;
+    static final Long ONE = 1L;
+    static final Long TWO = 2L;
 
     static String makeColor(String text, String color) {
         return ESC + color + text + ESC + NORMAL_MODE;
@@ -79,5 +79,5 @@ public class TextFormatter {
 
         return textForTweet.toString();
     }
-
+}
 
