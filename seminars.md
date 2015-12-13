@@ -70,10 +70,23 @@
 * Многопоточное программирование
     * [Lesson: Concurrency](https://docs.oracle.com/javase/tutorial/essential/concurrency/index.html)
     * [Java Concurrency in Practice](http://www.ozon.ru/context/detail/id/3174887/)
-* Задание на дом: [CQL](/tasks/05-Threads.md)
+* Задание на дом: [Threads](/tasks/05-Threads.md)
 
 ## Семинар 9: Потоки
 * Многопоточное программирование
     * [Fork/Join](https://docs.oracle.com/javase/tutorial/essential/concurrency/forkjoin.html)
     * [A Strategy for Defining Immutable Objects](https://docs.oracle.com/javase/tutorial/essential/concurrency/imstrat.html)
-* Задание на дом: [CQL](/tasks/06-Threads-Ex.md)
+    * [Java Memory Model](https://www.cs.umd.edu/~pugh/java/memoryModel/jsr-133-faq.html)
+    * [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)
+* Задание на дом: То же
+
+
+## Семинар 9: JDBC
+* JDBC
+    * [Trail: JDBC(TM) Database Access](https://docs.oracle.com/javase/tutorial/jdbc/)
+    * [SQL injections](https://www.owasp.org/index.php/Preventing_SQL_Injection_in_Java)
+* Экосистема
+    * [spring-jdbc](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/jdbc.html)
+    * [mybatis](http://mybatis.org/mybatis-3/)
+    * [hibernate](http://hibernate.org)
+* Задание на дом: [MiniORM](/tasks/06-MiniORM.md)
