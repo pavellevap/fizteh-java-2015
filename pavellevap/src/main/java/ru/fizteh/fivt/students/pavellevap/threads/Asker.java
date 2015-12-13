@@ -4,22 +4,23 @@ import java.util.Random;
 
 public class Asker {
 
-    static public class Runner {
-        volatile int questionCounter = 0;
-        volatile boolean areAllReady = false;
-        volatile int amountOfAnswers = 0;
-        Random random;
+    public static class Runner {
+        private volatile int questionCounter = 0;
+        private volatile boolean areAllReady = false;
+        private volatile int amountOfAnswers = 0;
+        private Random random;
 
         public class AnswerPrinter implements Runnable {
-            int currQuestionNumber = 1;
+            private int currQuestionNumber = 1;
 
             @Override
             public void run() {
                 while (true) {
                     synchronized (Runner.this) {
                         try {
-                            while (currQuestionNumber != questionCounter)
+                            while (currQuestionNumber != questionCounter) {
                                 Runner.this.wait();
+                            }
                             if (random.nextDouble() < 0.1) {
                                 System.out.println("NO");
                                 areAllReady = false;
@@ -29,7 +30,10 @@ public class Asker {
                             amountOfAnswers++;
                             currQuestionNumber++;
                             Runner.this.notifyAll();
-                        } catch (InterruptedException ex) {}
+                        } catch (InterruptedException ex) {
+                            System.err.println("Interrupted");
+                            return;
+                        }
                     }
                 }
             }
@@ -38,8 +42,9 @@ public class Asker {
         void run(int amountOfThreads) {
             random = new Random(3);
 
-            for (int i = 0; i < amountOfThreads; i++)
+            for (int i = 0; i < amountOfThreads; i++) {
                 (new Thread(new AnswerPrinter())).start();
+            }
 
 
 
@@ -52,13 +57,18 @@ public class Asker {
                         amountOfAnswers = 0;
                         this.notifyAll();
 
-                        while (amountOfAnswers != amountOfThreads)
+                        while (amountOfAnswers != amountOfThreads) {
                             this.wait();
+                        }
 
-                        if (areAllReady)
+                        if (areAllReady) {
                             break;
+                        }
                         Thread.sleep(500);
-                    } catch (InterruptedException ex) {}
+                    } catch (InterruptedException ex) {
+                        System.err.println("Interrupted");
+                        return;
+                    }
                 }
             }
         }
@@ -66,6 +76,11 @@ public class Asker {
 
 
     public static void main(String[] args) {
-        (new Runner()).run(10);
+        int n = 0;
+        if (args.length > 0) {
+            n = Integer.parseInt(args[0]);
+        }
+
+        (new Runner()).run(n);
     }
 }
