@@ -1,24 +1,21 @@
-package ru.fizteh.fivt.students.akormushin.collectionquery;
+package ru.fizteh.fivt.students.pavellevap.CQL;
 
-import ru.fizteh.fivt.students.akormushin.collectionquery.impl.Tuple;
+import ru.fizteh.fivt.students.pavellevap.CQL.impl.Tuple;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
-import static ru.fizteh.fivt.students.akormushin.collectionquery.Aggregates.avg;
-import static ru.fizteh.fivt.students.akormushin.collectionquery.Aggregates.count;
-import static ru.fizteh.fivt.students.akormushin.collectionquery.CollectionQuery.Student.student;
-import static ru.fizteh.fivt.students.akormushin.collectionquery.Conditions.rlike;
-import static ru.fizteh.fivt.students.akormushin.collectionquery.OrderByConditions.asc;
-import static ru.fizteh.fivt.students.akormushin.collectionquery.OrderByConditions.desc;
-import static ru.fizteh.fivt.students.akormushin.collectionquery.Sources.list;
-import static ru.fizteh.fivt.students.akormushin.collectionquery.impl.FromStmt.from;
+import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.avg;
+import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.count;
+import static ru.fizteh.fivt.students.pavellevap.CQL.CollectionQuery.Student.student;
+import static ru.fizteh.fivt.students.pavellevap.CQL.Conditions.rlike;
+import static ru.fizteh.fivt.students.pavellevap.CQL.OrderByConditions.asc;
+import static ru.fizteh.fivt.students.pavellevap.CQL.OrderByConditions.desc;
+import static ru.fizteh.fivt.students.pavellevap.CQL.Sources.list;
+import static ru.fizteh.fivt.students.pavellevap.CQL.impl.FromStmt.from;
 
-/**
- * @author akormushin
- */
 public class CollectionQuery {
 
     /**

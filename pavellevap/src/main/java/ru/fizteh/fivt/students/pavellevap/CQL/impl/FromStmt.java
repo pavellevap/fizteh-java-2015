@@ -1,4 +1,4 @@
-package ru.fizteh.fivt.students.akormushin.collectionquery.impl;
+package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 
 import java.util.function.BiPredicate;
 import java.util.function.Function;

@@ -1,4 +1,4 @@
-package ru.fizteh.fivt.students.akormushin.collectionquery;
+package ru.fizteh.fivt.students.pavellevap.CQL;
 
 import java.util.function.Function;
 import java.util.function.Predicate;

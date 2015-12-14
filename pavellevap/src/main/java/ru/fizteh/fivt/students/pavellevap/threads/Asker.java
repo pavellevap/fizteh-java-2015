@@ -5,9 +5,9 @@ import java.util.Random;
 public class Asker {
 
     public static class Runner {
-        private volatile int questionCounter = 0;
-        private volatile boolean areAllReady = false;
-        private volatile int amountOfAnswers = 0;
+        private int questionCounter = 0;
+        private boolean areAllReady = false;
+        private int amountOfAnswers = 0;
         private Random random;
 
         public class AnswerPrinter implements Runnable {
@@ -47,9 +47,8 @@ public class Asker {
             }
 
 
-
-            while (!areAllReady) {
-                synchronized (this) {
+            synchronized (this) {
+                while (!areAllReady) {
                     try {
                         System.out.println("Are you ready?");
                         questionCounter++;

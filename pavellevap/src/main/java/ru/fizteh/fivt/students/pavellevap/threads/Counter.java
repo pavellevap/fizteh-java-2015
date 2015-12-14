@@ -3,7 +3,7 @@ package ru.fizteh.fivt.students.pavellevap.threads;
 public class Counter {
 
     public static class Runner {
-        private volatile int currNumber = 1;
+        private int currNumber = 1;
 
         public class NumberPrinter implements Runnable {
             NumberPrinter(int number) {
