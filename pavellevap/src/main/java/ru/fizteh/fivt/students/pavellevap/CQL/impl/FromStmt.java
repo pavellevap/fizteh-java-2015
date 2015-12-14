@@ -1,50 +1,50 @@
 package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.stream.Stream;
+import java.util.stream.*;
 
-/**
- * Created by kormushin on 06.10.15.
- */
 public class FromStmt<T> {
+    private List<T> data;
+    private List<?> lastResult;
+
+    FromStmt(Iterable<T> iterable, Iterable<?> lastResult) {
+        data = StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
+        this.lastResult = StreamSupport.stream(lastResult.spliterator(), false).collect(Collectors.toList());
+    }
+
+    FromStmt(Iterable<T> iterable) {
+        data = StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
+        lastResult = new LinkedList<>();
+    }
+
+    FromStmt(Stream<T> stream) {
+        data = stream.collect(Collectors.toList());
+    }
+
     public static <T> FromStmt<T> from(Iterable<T> iterable) {
-        throw new UnsupportedOperationException();
+        return new FromStmt<T>(iterable);
     }
 
     public static <T> FromStmt<T> from(Stream<T> stream) {
-        throw new UnsupportedOperationException();
+        return new FromStmt<T>(stream);
     }
 
     public static <T> FromStmt<T> from(Query query) {
-        throw new UnsupportedOperationException();
+        return new FromStmt<T>(query.execute());
     }
 
     @SafeVarargs
     public final <R> SelectStmt<T, R> select(Class<R> clazz, Function<T, ?>... s) {
-        throw new UnsupportedOperationException();
+        return new SelectStmt<>(data, clazz, (Iterable<R>)lastResult, s);
     }
 
-    /**
-     * Selects the only defined expression as is without wrapper.
-     *
-     * @param s
-     * @param <R>
-     * @return statement resulting in collection of R
-     */
     public final <R> SelectStmt<T, R> select(Function<T, R> s) {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Selects the only defined expression as is without wrapper.
-     *
-     * @param first
-     * @param second
-     * @param <F>
-     * @param <S>
-     * @return statement resulting in collection of R
-     */
     public final <F, S> SelectStmt<T, Tuple<F, S>> select(Function<T, F> first, Function<T, S> second) {
         throw new UnsupportedOperationException();
     }
@@ -54,13 +54,6 @@ public class FromStmt<T> {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Selects the only defined expression as is without wrapper.
-     *
-     * @param s
-     * @param <R>
-     * @return statement resulting in collection of R
-     */
     public final <R> SelectStmt<T, R> selectDistinct(Function<T, R> s) {
         throw new UnsupportedOperationException();
     }

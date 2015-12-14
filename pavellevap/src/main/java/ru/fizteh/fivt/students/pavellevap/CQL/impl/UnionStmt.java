@@ -1,11 +1,15 @@
 package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 
-/**
- * Created by kormushin on 09.10.15.
- */
-public class UnionStmt {
+import java.util.List;
+
+public class UnionStmt<R> {
+    Iterable<R> lastResult;
+
+    public UnionStmt(Iterable<R> lastResult) {
+        this.lastResult = lastResult;
+    }
 
     public <T> FromStmt<T> from(Iterable<T> list) {
-        throw new UnsupportedOperationException();
+        return new FromStmt(list, lastResult);
     }
 }

@@ -1,27 +1,99 @@
 package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 
-import java.util.Comparator;
+import ru.fizteh.fivt.students.pavellevap.CQL.aggregatesImpl.Aggregator;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-/**
- * Created by kormushin on 06.10.15.
- */
 public class SelectStmt<T, R> implements Query<R> {
+    private List<R> lastResult;
+    private List<T> data;
+    private Function<T, ?>[] functions;
+    private Class rClass;
+    private List<Function<T, ?>> groupByExpressions;
+    private Predicate<R> havingCondition;
+    private Comparator<R>[] orderByComparators;
+    private Integer resultMaxSize;
 
     @SafeVarargs
-    public SelectStmt(Function<T, R>... s) {
-        throw new UnsupportedOperationException();
+    public SelectStmt(Iterable<T> data, Class<R> rClass, Iterable<R> lastResult, Function<T, ?>... functions) {
+        this.data = StreamSupport.stream(data.spliterator(), false).collect(Collectors.toList());
+        this.lastResult = StreamSupport.stream(lastResult.spliterator(), false).collect(Collectors.toList());
+        this.functions = functions;
+        this.rClass = rClass;
+        groupByExpressions = new LinkedList<>();
+        havingCondition = element -> true;
+        orderByComparators = new Comparator[0];
+        resultMaxSize = Integer.MAX_VALUE;
     }
 
-    public WhereStmt<T, R> where(Predicate<T> predicate) {
-        throw new UnsupportedOperationException();
+    public SelectStmt<T, R> where(Predicate<T> predicate) {
+        List<T> newData = new LinkedList<>();
+        data.forEach(element -> {
+            if (predicate.test(element)) newData.add(element);
+        });
+        data = newData;
+        return this;
     }
 
     @Override
     public Iterable<R> execute() {
-        throw new UnsupportedOperationException();
+        List<R> result = new LinkedList<>();
+
+        List<List<T>> groupedData = new LinkedList<>();
+        if (groupByExpressions.size() == 0) {
+            data.forEach( element -> groupedData.add(Arrays.asList(element)) );
+        } else {
+            Map<String, List<T>> groups = new HashMap<>();
+
+            data.forEach( element -> {
+                StringBuilder groupName = new StringBuilder();
+                groupByExpressions.forEach(
+                        expression -> groupName.append(expression.apply(element).toString()) );
+                if (!groups.containsKey(groupName.toString()))
+                    groups.put(groupName.toString(), new LinkedList<>());
+                groups.get(groupName.toString()).add(element);
+            });
+
+            groups.forEach( (key, value) -> groupedData.add(value) );
+        }
+
+        for (List<T> elements : groupedData) {
+            Object[] args = new Object[functions.length];
+            Class[] argClasses = new Class[functions.length];
+
+            for (int i = 0; i < functions.length; i++) {
+                if (functions[i] instanceof Aggregator)
+                    args[i] = ((Aggregator)functions[i]).apply(elements);
+                else
+                    args[i] = functions[i].apply(elements.get(0));
+                argClasses[i] = args[i].getClass();
+            }
+
+            R newElement;
+            try {
+                newElement = (R)rClass.getConstructor(argClasses).newInstance(args);
+            } catch (Exception ex) {
+                System.err.println(ex.getMessage());
+                throw new RuntimeException();
+            }
+
+            if (result.size() < resultMaxSize && havingCondition.test(newElement))
+                result.add(newElement);
+        }
+
+        for (int i = orderByComparators.length - 1; i >= 0; i--)
+            Collections.sort(result, orderByComparators[i]);
+
+        List<R> newResult = lastResult;
+        newResult.addAll(result);
+
+        return newResult;
     }
 
     @Override
@@ -29,38 +101,30 @@ public class SelectStmt<T, R> implements Query<R> {
         throw new UnsupportedOperationException();
     }
 
-    public class WhereStmt<T, R> implements Query<R> {
-        @SafeVarargs
-        public final WhereStmt<T, R> groupBy(Function<T, ?>... expressions) {
-            throw new UnsupportedOperationException();
-        }
+    @SafeVarargs
+    public final SelectStmt<T, R> groupBy(Function<T, ?>... expressions) {
+        groupByExpressions = Arrays.asList(expressions);
+        return this;
+    }
 
-        @SafeVarargs
-        public final WhereStmt<T, R> orderBy(Comparator<R>... comparators) {
-            throw new UnsupportedOperationException();
-        }
+    @SafeVarargs
+    public final SelectStmt<T, R> orderBy(Comparator<R>... comparators) {
+        orderByComparators = comparators;
+        return this;
+    }
 
-        public WhereStmt<T, R> having(Predicate<R> condition) {
-            throw new UnsupportedOperationException();
-        }
+    public SelectStmt<T, R> having(Predicate<R> condition) {
+        havingCondition = condition;
+        return this;
+    }
 
-        public WhereStmt<T, R> limit(int amount) {
-            throw new UnsupportedOperationException();
-        }
+    public SelectStmt<T, R> limit(int amount) {
+        resultMaxSize = amount;
+        return this;
+    }
 
-        public UnionStmt union() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Iterable<R> execute() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Stream<R> stream() {
-            throw new UnsupportedOperationException();
-        }
+    public UnionStmt<R> union() {
+        return new UnionStmt(execute());
     }
 
 }
