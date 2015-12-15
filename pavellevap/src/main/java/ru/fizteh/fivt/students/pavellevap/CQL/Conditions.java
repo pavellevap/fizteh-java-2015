@@ -10,7 +10,7 @@ public class Conditions<T> {
     }
 
     public static <T> Predicate<T> like(Function<T, String> expression, String pattern) {
-        throw new UnsupportedOperationException();
+        return element -> pattern.equals(expression.apply(element));
     }
 
 }

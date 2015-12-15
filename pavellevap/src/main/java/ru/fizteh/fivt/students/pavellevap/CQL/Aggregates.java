@@ -22,5 +22,4 @@ public class Aggregates {
     public static <C, T extends Comparable<T>> Aggregator<C, Double> avg(Function<C, T> expression) {
         return new Avg(expression);
     }
-
 }
