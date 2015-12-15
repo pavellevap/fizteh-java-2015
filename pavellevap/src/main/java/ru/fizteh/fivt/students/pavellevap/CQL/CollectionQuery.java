@@ -1,11 +1,8 @@
 package ru.fizteh.fivt.students.pavellevap.CQL;
 
-import ru.fizteh.fivt.students.pavellevap.CQL.impl.Tuple;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 
 import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.avg;
 import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.count;

@@ -38,7 +38,7 @@ public class FromStmt<T> {
 
     @SafeVarargs
     public final <R> SelectStmt<T, R> select(Class<R> clazz, Function<T, ?>... s) {
-        return new SelectStmt<>(data, clazz, (Iterable<R>)lastResult, s);
+        return new SelectStmt<>(data, clazz, (Iterable<R>) lastResult, s);
     }
 
     public final <R> SelectStmt<T, R> select(Function<T, R> s) {

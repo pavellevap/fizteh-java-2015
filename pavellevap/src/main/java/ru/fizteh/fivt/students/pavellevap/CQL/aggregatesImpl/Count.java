@@ -1,7 +1,5 @@
 package ru.fizteh.fivt.students.pavellevap.CQL.aggregatesImpl;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -15,5 +13,7 @@ public class Count<T> implements Aggregator<T, Long> {
         return StreamSupport.stream(elements.spliterator(), false).map(function).count();
     }
 
-    public Long apply(T t) { return null; }
+    public Long apply(T t) {
+        return null;
+    }
 }

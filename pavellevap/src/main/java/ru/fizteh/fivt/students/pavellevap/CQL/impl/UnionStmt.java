@@ -1,9 +1,7 @@
 package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 
-import java.util.List;
-
 public class UnionStmt<R> {
-    Iterable<R> lastResult;
+    private Iterable<R> lastResult;
 
     public UnionStmt(Iterable<R> lastResult) {
         this.lastResult = lastResult;

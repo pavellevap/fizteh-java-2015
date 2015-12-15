@@ -2,7 +2,6 @@ package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 
 import ru.fizteh.fivt.students.pavellevap.CQL.aggregatesImpl.Aggregator;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -35,7 +34,9 @@ public class SelectStmt<T, R> implements Query<R> {
     public SelectStmt<T, R> where(Predicate<T> predicate) {
         List<T> newData = new LinkedList<>();
         data.forEach(element -> {
-            if (predicate.test(element)) newData.add(element);
+            if (predicate.test(element)) {
+                newData.add(element);
+            }
         });
         data = newData;
         return this;
@@ -47,20 +48,20 @@ public class SelectStmt<T, R> implements Query<R> {
 
         List<List<T>> groupedData = new LinkedList<>();
         if (groupByExpressions.size() == 0) {
-            data.forEach( element -> groupedData.add(Arrays.asList(element)) );
+            data.forEach(element -> groupedData.add(Arrays.asList(element)));
         } else {
             Map<String, List<T>> groups = new HashMap<>();
 
-            data.forEach( element -> {
+            data.forEach(element -> {
                 StringBuilder groupName = new StringBuilder();
-                groupByExpressions.forEach(
-                        expression -> groupName.append(expression.apply(element).toString()) );
-                if (!groups.containsKey(groupName.toString()))
+                groupByExpressions.forEach(expression -> groupName.append(expression.apply(element).toString()));
+                if (!groups.containsKey(groupName.toString())) {
                     groups.put(groupName.toString(), new LinkedList<>());
+                }
                 groups.get(groupName.toString()).add(element);
             });
 
-            groups.forEach( (key, value) -> groupedData.add(value) );
+            groups.forEach((key, value) -> groupedData.add(value));
         }
 
         for (List<T> elements : groupedData) {
@@ -68,27 +69,30 @@ public class SelectStmt<T, R> implements Query<R> {
             Class[] argClasses = new Class[functions.length];
 
             for (int i = 0; i < functions.length; i++) {
-                if (functions[i] instanceof Aggregator)
-                    args[i] = ((Aggregator)functions[i]).apply(elements);
-                else
+                if (functions[i] instanceof Aggregator) {
+                    args[i] = ((Aggregator) functions[i]).apply(elements);
+                } else {
                     args[i] = functions[i].apply(elements.get(0));
+                }
                 argClasses[i] = args[i].getClass();
             }
 
             R newElement;
             try {
-                newElement = (R)rClass.getConstructor(argClasses).newInstance(args);
+                newElement = (R) rClass.getConstructor(argClasses).newInstance(args);
             } catch (Exception ex) {
                 System.err.println(ex.getMessage());
                 throw new RuntimeException();
             }
 
-            if (result.size() < resultMaxSize && havingCondition.test(newElement))
+            if (result.size() < resultMaxSize && havingCondition.test(newElement)) {
                 result.add(newElement);
+            }
         }
 
-        for (int i = orderByComparators.length - 1; i >= 0; i--)
+        for (int i = orderByComparators.length - 1; i >= 0; i--) {
             Collections.sort(result, orderByComparators[i]);
+        }
 
         List<R> newResult = lastResult;
         newResult.addAll(result);
