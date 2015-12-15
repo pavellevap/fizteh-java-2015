@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-class Sources {
+public class Sources {
 
     @SafeVarargs
     public static <T> List<T> list(T... items) {

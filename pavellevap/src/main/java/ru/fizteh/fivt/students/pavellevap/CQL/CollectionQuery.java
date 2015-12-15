@@ -127,6 +127,12 @@ public class CollectionQuery {
             this.age = age;
         }
 
+        public Statistics(String group, Long count, Double age) {
+            this.group = group;
+            this.count = count;
+            this.age = age.longValue();
+        }
+
         @Override
         public String toString() {
             return "Statistics{"

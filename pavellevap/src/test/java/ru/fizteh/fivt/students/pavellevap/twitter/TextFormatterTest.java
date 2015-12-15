@@ -14,7 +14,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 @RunWith(MockitoJUnitRunner.class)
-class TextFormatterTest {
+public class TextFormatterTest {
     @Mock
     private
     Status tweet;

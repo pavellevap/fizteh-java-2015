@@ -10,7 +10,7 @@ import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 
-class BlockingQueueTest {
+public class BlockingQueueTest {
     BlockingQueue<Integer> queue;
 
     @Before
