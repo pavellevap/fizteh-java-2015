@@ -15,13 +15,12 @@ import static ru.fizteh.fivt.students.pavellevap.CQL.OrderByConditions.asc;
 import static ru.fizteh.fivt.students.pavellevap.CQL.OrderByConditions.desc;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 
 public class SelectStmtTest {
 
-    public static List<Data> data;
-    public static List<Student> students;
+    private static List<Data> data;
+    private static List<Student> students;
 
     @BeforeClass
     public static void setUp() {
