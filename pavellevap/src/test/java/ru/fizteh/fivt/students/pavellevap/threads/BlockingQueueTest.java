@@ -10,7 +10,7 @@ import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 
-public class BlockingQueueTest {
+class BlockingQueueTest {
     BlockingQueue<Integer> queue;
 
     @Before
@@ -21,9 +21,9 @@ public class BlockingQueueTest {
     @Test
     public void testOverflowing() throws Exception {
         Thread thr = new Thread(() -> {
-                try {
-                    queue.offer(Arrays.asList(1, 2, 3, 4, 5));
-                } catch (InterruptedException ex) {
+            try {
+                queue.offer(Arrays.asList(1, 2, 3, 4, 5));
+            } catch (InterruptedException ex) {
             }
         });
         thr.start();

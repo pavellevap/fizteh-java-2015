@@ -15,25 +15,25 @@ public class FromStmt<T> {
         this.lastResult = StreamSupport.stream(lastResult.spliterator(), false).collect(Collectors.toList());
     }
 
-    FromStmt(Iterable<T> iterable) {
+    private FromStmt(Iterable<T> iterable) {
         data = StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
         lastResult = new LinkedList<>();
     }
 
-    FromStmt(Stream<T> stream) {
+    private FromStmt(Stream<T> stream) {
         data = stream.collect(Collectors.toList());
     }
 
     public static <T> FromStmt<T> from(Iterable<T> iterable) {
-        return new FromStmt<T>(iterable);
+        return new FromStmt<>(iterable);
     }
 
     public static <T> FromStmt<T> from(Stream<T> stream) {
-        return new FromStmt<T>(stream);
+        return new FromStmt<>(stream);
     }
 
     public static <T> FromStmt<T> from(Query query) {
-        return new FromStmt<T>(query.execute());
+        return new FromStmt<>(query.execute());
     }
 
     @SafeVarargs

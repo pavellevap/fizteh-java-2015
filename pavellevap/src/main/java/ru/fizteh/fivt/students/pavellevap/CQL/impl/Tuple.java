@@ -3,7 +3,7 @@ package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 /**
  * @author akormushin
  */
-public class Tuple<F, S> {
+class Tuple<F, S> {
 
     private final F first;
     private final S second;

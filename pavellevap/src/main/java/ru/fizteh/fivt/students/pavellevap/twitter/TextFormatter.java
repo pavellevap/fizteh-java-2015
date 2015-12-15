@@ -7,7 +7,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
-public class TextFormatter {
+class TextFormatter {
 
     static final char ESC = 27;
 

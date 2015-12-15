@@ -1,7 +1,6 @@
 package ru.fizteh.fivt.students.pavellevap.twitter;
 
 import org.junit.*;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 
@@ -11,7 +10,6 @@ import org.powermock.api.mockito.PowerMockito;
 import twitter4j.*;
 
 import static org.mockito.Mockito.*;
-import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.any;
 import static org.hamcrest.Matchers.*;
 

@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 /**
  * @author akormushin
  */
-public interface Query<R> {
+interface Query<R> {
 
     Iterable<R> execute();
 

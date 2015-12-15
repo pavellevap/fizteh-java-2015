@@ -27,7 +27,7 @@ public class CollectionQuery {
                 .select(Statistics.class, Student::getGroup, count(Student::getName), avg(Student::age))
                 .where(rlike(Student::getName, ".*ov").and(s -> s.age() > 20))
                 .groupBy(Student::getGroup)
-                .having(s -> s.getGroup() == "495" || s.getGroup() == "494")
+                .having(s -> s.getGroup().equals("495") || s.getGroup().equals("494"))
                 .orderBy(asc(Statistics::getGroup), desc(Statistics::getCount))
                 .union()
                 .from(list(student("ivanov", LocalDate.parse("1985-08-06"), "494"),
@@ -143,9 +143,12 @@ public class CollectionQuery {
 
         @Override
         public boolean equals(Object s) {
-            Statistics statistics = (Statistics) s;
-            return group.equals(statistics.group) && age.equals(statistics.age) && count.equals(statistics.count);
+            if (s instanceof Statistics) {
+                Statistics statistics = (Statistics) s;
+                return group.equals(statistics.group) && age.equals(statistics.age) && count.equals(statistics.count);
+            } else {
+                return false;
+            }
         }
-
     }
 }

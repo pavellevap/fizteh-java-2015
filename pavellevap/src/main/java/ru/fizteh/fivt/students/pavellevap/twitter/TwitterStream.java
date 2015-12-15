@@ -16,7 +16,7 @@ public class TwitterStream {
             jCommander.setProgramName("TwitterStream");
             jCommander.usage();
         } else {
-            if (twitterStreamArgs.getKeyword() == "") {
+            if (twitterStreamArgs.getKeyword().equals("")) {
                 System.out.println("Необходимо указать ключевые слова для поиска\n"
                         + "Для справки см. TwitterStream --help");
             } else {
@@ -90,7 +90,7 @@ public class TwitterStream {
     static Queue<Status> prepareForListening(TwitterStreamArgs args) {
         Queue<Status> tweets = new LinkedList<>();
 
-        twitter4j.TwitterStream twitterStream = new TwitterStreamFactory().getSingleton();
+        twitter4j.TwitterStream twitterStream = TwitterStreamFactory.getSingleton();
         twitter4j.StatusListener listener = new StatusAdapter() {
             @Override
             public void onStatus(Status tweet) {

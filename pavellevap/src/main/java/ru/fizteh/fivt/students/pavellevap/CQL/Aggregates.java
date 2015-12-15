@@ -5,7 +5,7 @@ import java.util.function.Function;
 import ru.fizteh.fivt.students.pavellevap.CQL.aggregatesImpl.Avg;
 import ru.fizteh.fivt.students.pavellevap.CQL.aggregatesImpl.Count;
 
-public class Aggregates {
+class Aggregates {
 
     public static <C, T extends Comparable<T>> Function<C, T> max(Function<C, T> expression) {
         throw new UnsupportedOperationException();

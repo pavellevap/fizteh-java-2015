@@ -2,7 +2,7 @@ package ru.fizteh.fivt.students.pavellevap.twitter;
 
 import com.beust.jcommander.*;
 
-public class TwitterStreamArgs {
+class TwitterStreamArgs {
     @Parameter (names = {"--query", "-q"}, description = "keyword for search")
     private String keyword = "";
 
@@ -39,4 +39,4 @@ public class TwitterStreamArgs {
     public Boolean isHelpMode() {
         return helpMode;
     }
-};
+}
