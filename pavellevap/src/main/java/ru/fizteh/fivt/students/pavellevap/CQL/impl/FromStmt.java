@@ -12,17 +12,20 @@ public class FromStmt<T> {
     private List<Object> lastResult;
 
     FromStmt(Iterable<T> iterable, Iterable<?> lastResult) {
-        iterable.forEach(element -> data.add(element));
-        lastResult.forEach(element -> this.lastResult.add(element));
+        data = new LinkedList<>();
+        iterable.forEach(data::add);
+        this.lastResult = new LinkedList<>();
+        lastResult.forEach(this.lastResult::add);
     }
 
     private FromStmt(Iterable<T> iterable) {
-        iterable.forEach(element -> data.add(element));
+        data = new LinkedList<>();
+        iterable.forEach(data::add);
         lastResult = new LinkedList<>();
     }
 
     private FromStmt(Stream<T> stream) {
-        stream.forEach(element -> data.add(element));
+        stream.forEach(data::add);
     }
 
     public static <T> FromStmt<T> from(Iterable<T> iterable) {
@@ -57,6 +60,7 @@ public class FromStmt<T> {
 
     public final <R> SelectStmt<T, R> selectDistinct(Function<T, R> s) {
         throw new UnsupportedOperationException();
+        //return new SelectStmt<>(data, T, s, true, (Iterable<R>) lastResult);
     }
 
     public <J> JoinClause<T, J> join(Iterable<J> iterable) {

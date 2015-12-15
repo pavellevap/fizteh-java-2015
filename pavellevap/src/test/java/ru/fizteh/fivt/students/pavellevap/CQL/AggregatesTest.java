@@ -17,25 +17,6 @@ import static org.hamcrest.core.Is.is;
 
 public class AggregatesTest {
 
-    public static class Data {
-        private Integer a;
-        private String b;
-
-        public Integer getA() {
-            return a;
-        }
-
-        public String getB() {
-            return b;
-        }
-
-        public Data(int a, String b) {
-            this.a = a;
-            this.b = b;
-        }
-
-    }
-
     private static List<Data> data;
 
     @BeforeClass

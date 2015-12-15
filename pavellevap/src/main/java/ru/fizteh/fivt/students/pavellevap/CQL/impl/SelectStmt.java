@@ -21,8 +21,10 @@ public class SelectStmt<T, R> implements Query<R> {
 
     public SelectStmt(Iterable<T> data, Class<R> rClass, Function<T, ?>[] functions, Boolean isDistinct,
                       Iterable<R> lastResult) {
-        data.forEach(element -> this.data.add(element));
-        lastResult.forEach(element -> this.lastResult.add(element));
+        this.data = new LinkedList<>();
+        data.forEach(this.data::add);
+        this.lastResult = new LinkedList<>();
+        lastResult.forEach(this.lastResult::add);
         this.functions = functions;
         this.rClass = rClass;
         this.isDistinct = isDistinct;

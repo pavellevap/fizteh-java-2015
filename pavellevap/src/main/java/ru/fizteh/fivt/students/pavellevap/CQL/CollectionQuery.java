@@ -36,6 +36,7 @@ public class CollectionQuery {
                 .execute();
         System.out.println(statistics);
 
+
         /*Iterable<Tuple<String, String>> mentorsByStudent =
                 from(list(student("ivanov", LocalDate.parse("1985-08-06"), "494")))
                 .join(list(new Group("494", "mr.sidorov")))
