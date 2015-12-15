@@ -38,7 +38,7 @@ public class FromStmt<T> {
 
     @SafeVarargs
     public final <R> SelectStmt<T, R> select(Class<R> clazz, Function<T, ?>... s) {
-        return new SelectStmt<>(data, clazz, (Iterable<R>) lastResult, s);
+        return new SelectStmt<>(data, clazz, s, false, (Iterable<R>) lastResult);
     }
 
     public final <R> SelectStmt<T, R> select(Function<T, R> s) {
@@ -51,7 +51,7 @@ public class FromStmt<T> {
 
     @SafeVarargs
     public final <R> SelectStmt<T, R> selectDistinct(Class<R> clazz, Function<T, ?>... s) {
-        throw new UnsupportedOperationException();
+        return new SelectStmt<>(data, clazz, s, true, (Iterable<R>) lastResult);
     }
 
     public final <R> SelectStmt<T, R> selectDistinct(Function<T, R> s) {

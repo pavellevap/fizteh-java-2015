@@ -30,8 +30,9 @@ public class CollectionQuery {
                 .having(s -> s.getGroup() == "495" || s.getGroup() == "494")
                 .orderBy(asc(Statistics::getGroup), desc(Statistics::getCount))
                 .union()
-                .from(list(student("ivanov", LocalDate.parse("1985-08-06"), "494")))
-                .select(Statistics.class, s -> "all", count(s -> 1), avg(Student::age))
+                .from(list(student("ivanov", LocalDate.parse("1985-08-06"), "494"),
+                           student("ivanov", LocalDate.parse("1985-08-06"), "494")))
+                .selectDistinct(Statistics.class, s -> "all", count(s -> 1), avg(Student::age))
                 .execute();
         System.out.println(statistics);
 
@@ -134,6 +135,17 @@ public class CollectionQuery {
                     + ", age=" + age
                     + '}';
         }
-    }
 
+        @Override
+        public int hashCode() {
+            return (group + age + count).hashCode();
+        }
+
+        @Override
+        public boolean equals(Object s) {
+            Statistics statistics = (Statistics) s;
+            return group.equals(statistics.group) && age.equals(statistics.age) && count.equals(statistics.count);
+        }
+
+    }
 }

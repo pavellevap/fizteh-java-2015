@@ -18,13 +18,15 @@ public class SelectStmt<T, R> implements Query<R> {
     private Predicate<R> havingCondition;
     private Comparator<R>[] orderByComparators;
     private Integer resultMaxSize;
+    private Boolean isDistinct;
 
-    @SafeVarargs
-    public SelectStmt(Iterable<T> data, Class<R> rClass, Iterable<R> lastResult, Function<T, ?>... functions) {
+    public SelectStmt(Iterable<T> data, Class<R> rClass, Function<T, ?>[] functions, Boolean isDistinct,
+                      Iterable<R> lastResult) {
         this.data = StreamSupport.stream(data.spliterator(), false).collect(Collectors.toList());
         this.lastResult = StreamSupport.stream(lastResult.spliterator(), false).collect(Collectors.toList());
         this.functions = functions;
         this.rClass = rClass;
+        this.isDistinct = isDistinct;
         groupByExpressions = new LinkedList<>();
         havingCondition = element -> true;
         orderByComparators = new Comparator[0];
@@ -43,8 +45,40 @@ public class SelectStmt<T, R> implements Query<R> {
     }
 
     @Override
+    public Stream<R> stream() {
+        throw new UnsupportedOperationException();
+    }
+
+    @SafeVarargs
+    public final SelectStmt<T, R> groupBy(Function<T, ?>... expressions) {
+        groupByExpressions = Arrays.asList(expressions);
+        return this;
+    }
+
+    @SafeVarargs
+    public final SelectStmt<T, R> orderBy(Comparator<R>... comparators) {
+        orderByComparators = comparators;
+        return this;
+    }
+
+    public SelectStmt<T, R> having(Predicate<R> condition) {
+        havingCondition = condition;
+        return this;
+    }
+
+    public SelectStmt<T, R> limit(int amount) {
+        resultMaxSize = amount;
+        return this;
+    }
+
+    public UnionStmt<R> union() {
+        return new UnionStmt(execute());
+    }
+
+    @Override
     public Iterable<R> execute() {
         List<R> result = new LinkedList<>();
+        Set<R> distinctResult = new HashSet<>();
 
         List<List<T>> groupedData = new LinkedList<>();
         if (groupByExpressions.size() == 0) {
@@ -85,8 +119,16 @@ public class SelectStmt<T, R> implements Query<R> {
                 throw new RuntimeException();
             }
 
-            if (result.size() < resultMaxSize && havingCondition.test(newElement)) {
-                result.add(newElement);
+            if (!isDistinct) {
+                if (result.size() < resultMaxSize && havingCondition.test(newElement)) {
+                    result.add(newElement);
+                }
+            } else {
+                if (!distinctResult.contains(newElement) && havingCondition.test(newElement)
+                        && distinctResult.size() < resultMaxSize) {
+                    result.add(newElement);
+                    distinctResult.add(newElement);
+                }
             }
         }
 
@@ -98,37 +140,6 @@ public class SelectStmt<T, R> implements Query<R> {
         newResult.addAll(result);
 
         return newResult;
-    }
-
-    @Override
-    public Stream<R> stream() {
-        throw new UnsupportedOperationException();
-    }
-
-    @SafeVarargs
-    public final SelectStmt<T, R> groupBy(Function<T, ?>... expressions) {
-        groupByExpressions = Arrays.asList(expressions);
-        return this;
-    }
-
-    @SafeVarargs
-    public final SelectStmt<T, R> orderBy(Comparator<R>... comparators) {
-        orderByComparators = comparators;
-        return this;
-    }
-
-    public SelectStmt<T, R> having(Predicate<R> condition) {
-        havingCondition = condition;
-        return this;
-    }
-
-    public SelectStmt<T, R> limit(int amount) {
-        resultMaxSize = amount;
-        return this;
-    }
-
-    public UnionStmt<R> union() {
-        return new UnionStmt(execute());
     }
 
 }
