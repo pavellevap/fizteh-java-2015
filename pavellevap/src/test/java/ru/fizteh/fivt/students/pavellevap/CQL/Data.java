@@ -17,6 +17,10 @@ public class Data {
         this.b = b;
     }
 
+    public Data(Data data) {
+        this(data.getA(), data.getB());
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Data) {

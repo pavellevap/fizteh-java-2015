@@ -64,6 +64,10 @@ public class CollectionQuery {
             this.group = group;
         }
 
+        public Student(Student s) {
+            this(s.getName(), s.getDateOfBirth(), s.getGroup());
+        }
+
         public LocalDate getDateOfBirth() {
             return dateOfBirth;
         }
@@ -78,6 +82,21 @@ public class CollectionQuery {
 
         public static Student student(String name, LocalDate dateOfBith, String group) {
             return new Student(name, dateOfBith, group);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Student) {
+                Student s = (Student) obj;
+                return s.toString().equals(toString());
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return toString().hashCode();
         }
 
         public String toString() {
