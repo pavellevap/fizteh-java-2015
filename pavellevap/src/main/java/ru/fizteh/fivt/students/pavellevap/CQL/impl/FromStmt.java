@@ -9,20 +9,20 @@ import java.util.stream.*;
 @SuppressWarnings("unchecked")
 public class FromStmt<T> {
     private List<T> data;
-    private List<?> lastResult;
+    private List<Object> lastResult;
 
     FromStmt(Iterable<T> iterable, Iterable<?> lastResult) {
-        data = StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
-        this.lastResult = StreamSupport.stream(lastResult.spliterator(), false).collect(Collectors.toList());
+        iterable.forEach(element -> data.add(element));
+        lastResult.forEach(element -> this.lastResult.add(element));
     }
 
     private FromStmt(Iterable<T> iterable) {
-        data = StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
+        iterable.forEach(element -> data.add(element));
         lastResult = new LinkedList<>();
     }
 
     private FromStmt(Stream<T> stream) {
-        data = stream.collect(Collectors.toList());
+        stream.forEach(element -> data.add(element));
     }
 
     public static <T> FromStmt<T> from(Iterable<T> iterable) {

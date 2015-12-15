@@ -5,9 +5,7 @@ import ru.fizteh.fivt.students.pavellevap.CQL.aggregatesImpl.Aggregator;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @SuppressWarnings("unchecked")
 public class SelectStmt<T, R> implements Query<R> {
@@ -23,8 +21,8 @@ public class SelectStmt<T, R> implements Query<R> {
 
     public SelectStmt(Iterable<T> data, Class<R> rClass, Function<T, ?>[] functions, Boolean isDistinct,
                       Iterable<R> lastResult) {
-        this.data = StreamSupport.stream(data.spliterator(), false).collect(Collectors.toList());
-        this.lastResult = StreamSupport.stream(lastResult.spliterator(), false).collect(Collectors.toList());
+        data.forEach(element -> this.data.add(element));
+        lastResult.forEach(element -> this.lastResult.add(element));
         this.functions = functions;
         this.rClass = rClass;
         this.isDistinct = isDistinct;
