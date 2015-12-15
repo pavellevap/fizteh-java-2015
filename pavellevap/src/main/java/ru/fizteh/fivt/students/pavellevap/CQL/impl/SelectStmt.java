@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+@SuppressWarnings("unchecked")
 public class SelectStmt<T, R> implements Query<R> {
     private List<R> lastResult;
     private List<T> data;

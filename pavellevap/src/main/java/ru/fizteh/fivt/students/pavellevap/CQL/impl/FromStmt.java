@@ -6,6 +6,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.*;
 
+@SuppressWarnings("unchecked")
 public class FromStmt<T> {
     private List<T> data;
     private List<?> lastResult;

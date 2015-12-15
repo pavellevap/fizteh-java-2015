@@ -1,5 +1,6 @@
 package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 
+@SuppressWarnings("unchecked")
 public class UnionStmt<R> {
     private Iterable<R> lastResult;
 

@@ -4,6 +4,7 @@ import java.util.function.Function;
 
 import ru.fizteh.fivt.students.pavellevap.CQL.aggregatesImpl.*;
 
+@SuppressWarnings("unchecked")
 class Aggregates {
 
     public static <C, T extends Comparable<T>> Aggregator<C, T> max(Function<C, T> expression) {
