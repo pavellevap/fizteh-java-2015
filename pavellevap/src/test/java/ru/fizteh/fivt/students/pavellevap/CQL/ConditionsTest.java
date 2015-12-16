@@ -54,5 +54,4 @@ public class ConditionsTest {
         assertThat(list(from(students).select(s -> s)
                 .where(like(Student::getGroup, "497")).execute()), hasItems(students.get(5), students.get(4)));
     }
-
 }

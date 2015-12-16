@@ -32,4 +32,19 @@ public class Tuple<F, S> {
                 + ", second=" + second
                 + '}';
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Tuple) {
+            Tuple t = (Tuple) obj;
+            return first.equals(t.first) && second.equals(t.second);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return first.hashCode() * 1000000009 + second.hashCode();
+    }
 }

@@ -1,6 +1,8 @@
 package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 
 import static org.junit.Assert.assertThat;
+import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.avg;
+import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.count;
 import static ru.fizteh.fivt.students.pavellevap.CQL.Sources.list;
 import static org.hamcrest.Matchers.*;
 
@@ -21,6 +23,7 @@ public class SelectStmtTest {
 
     private static List<Data> data;
     private static List<Student> students;
+    private static List<Group> groups;
 
     @BeforeClass
     public static void setUp() {
@@ -31,6 +34,10 @@ public class SelectStmtTest {
                 student("golovanov", LocalDate.parse("1985-04-13"), "497"),
                 student("frolov", LocalDate.parse("1989-06-18"), "497"),
                 student("petrov", LocalDate.parse("2006-08-06"), "494"));
+
+        groups = list(new Group("494", "mr.sidorov"),
+                new Group("495", "mr.noname"),
+                new Group("497", "ms.somename"));
 
         data = list(new Data(1, "a"),
                 new Data(2, "b"),
@@ -121,5 +128,30 @@ public class SelectStmtTest {
                 .having(s -> s.equals("494")).union()
                 .from(students).selectDistinct(Student::getGroup)
                 .having(s -> s.equals("495")).execute()), is(list("494", "495")));
+    }
+
+    @Test
+    public void testExecute() {
+        List<Tuple<Statistics, Group>> statistics =
+                list(from(from(students)
+                        .select(Statistics.class, Student::getGroup, count(Student::getName), avg(Student::age))
+                        .where(rlike(Student::getName, ".*ov").and(s -> s.age() > 20))
+                        .groupBy(Student::getGroup)
+                        .having(s -> s.getGroup().equals("495") || s.getGroup().equals("494"))
+                        .orderBy(asc(Statistics::getGroup), desc(Statistics::getCount))
+                        .union()
+                        .from(list(student("ivanov", LocalDate.parse("1985-08-06"), "494"),
+                                student("ivanov", LocalDate.parse("1985-08-06"), "494")))
+                        .selectDistinct(Statistics.class, s -> "all", count(s -> 1), avg(Student::age)))
+                        .join(groups)
+                        .on(Statistics::getGroup, Group::getGroup)
+                        .select(s -> s).execute());
+        assertThat(statistics, hasSize(2));
+        assertThat(statistics, hasItems(
+                new Tuple<>(new Statistics("495", 2L, 29L),
+                            new Group("495", "mr.noname")),
+                new Tuple<>(new Statistics("494", 1L, 29L),
+                            new Group("494", "mr.sidorov"))));
+
     }
 }

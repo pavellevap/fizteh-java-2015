@@ -48,7 +48,7 @@ public class FromStmt<T> {
         return new FromStmt<>(stream);
     }
 
-    public static <T> FromStmt<T> from(Query query) {
+    public static <T> FromStmt<T> from(Query<T> query) {
         return new FromStmt<>(query.execute());
     }
 

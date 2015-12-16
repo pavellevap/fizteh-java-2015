@@ -6,8 +6,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.avg;
 import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.count;
@@ -30,7 +28,12 @@ public class CollectionQuery {
                 student("frolov", LocalDate.parse("1989-06-18"), "497"),
                 student("petrov", LocalDate.parse("2006-08-06"), "494"));
 
-        Iterable<Statistics> statistics = from(students)
+        List<Group> groups = list(new Group("494", "mr.sidorov"),
+                new Group("495", "mr.noname"),
+                new Group("497", "ms.somename"));
+
+        Iterable<Tuple<Statistics, Group>> statistics =
+                from(from(students)
                 .select(Statistics.class, Student::getGroup, count(Student::getName), avg(Student::age))
                 .where(rlike(Student::getName, ".*ov").and(s -> s.age() > 20))
                 .groupBy(Student::getGroup)
@@ -39,27 +42,21 @@ public class CollectionQuery {
                 .union()
                 .from(list(student("ivanov", LocalDate.parse("1985-08-06"), "494"),
                            student("ivanov", LocalDate.parse("1985-08-06"), "494")))
-                .selectDistinct(Statistics.class, s -> "all", count(s -> 1), avg(Student::age))
-                .execute();
+                .selectDistinct(Statistics.class, s -> "all", count(s -> 1), avg(Student::age)))
+                        .join(groups)
+                        .on(Statistics::getGroup, Group::getGroup)
+                        .select(s -> s).execute();
         System.out.println(statistics);
 
-        System.out.println(from(students).select(
-                Student::getGroup, Student::getName).execute());
 
         Iterable<Tuple<String, String>> mentorsByStudent =
                 from(students)
-                .join(list(new Group("494", "mr.sidorov"),
-                           new Group("495", "mr.noname"),
-                           new Group("497", "ms.somename")))
+                .join(groups)
                 .on(Student::getGroup, Group::getGroup)
                 .select(sg -> sg.getFirst().getName(), sg -> sg.getSecond().getMentor())
                 .execute();
         System.out.println(mentorsByStudent);
-
-        Map<String, List<Student>> map = students.stream().collect(Collectors.groupingBy(Student::getGroup));
-        System.out.println(map);
     }
-
 
     public static class Student {
         private final String name;
@@ -127,6 +124,13 @@ public class CollectionQuery {
             this.mentor = mentor;
         }
 
+        @Override
+        public String toString() {
+            return "Group{"
+                    + "group='" + group + "\'"
+                    + ", mentor='" + mentor + "\'}";
+        }
+
         public String getGroup() {
             return group;
         }
@@ -134,8 +138,22 @@ public class CollectionQuery {
         public String getMentor() {
             return mentor;
         }
-    }
 
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Group) {
+                Group g = (Group) obj;
+                return group.equals(g.group) && mentor.equals(g.mentor);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return toString().hashCode();
+        }
+    }
 
     public static class Statistics {
 
