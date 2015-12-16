@@ -31,27 +31,27 @@ public class ConditionsTest {
 
     @Test
     public void testRlike() {
-        assertThat(list(from(students).select(Student.class, s -> s)
+        assertThat(list(from(students).select(s -> s)
                 .where(rlike(Student::getName, ".*ov")).execute()), hasSize(6));
-        assertThat(list(from(students).select(Student.class, s -> s)
+        assertThat(list(from(students).select(s -> s)
                 .where(rlike(Student::getName, ".*ov")).execute()), not(hasItem(students.get(3))));
 
-        assertThat(list(from(students).select(Student.class, s -> s)
+        assertThat(list(from(students).select(s -> s)
                 .where(rlike(Student::getName, ".*olo.*")).execute()), hasSize(2));
-        assertThat(list(from(students).select(Student.class, s -> s)
+        assertThat(list(from(students).select(s -> s)
                 .where(rlike(Student::getName, ".*olo.*")).execute()), hasItems(students.get(5), students.get(4)));
     }
 
     @Test
     public void testLike() {
-        assertThat(list(from(students).select(Student.class, s -> s)
+        assertThat(list(from(students).select(s -> s)
                 .where(like(Student::getGroup, "495")).execute()), hasSize(3));
-        assertThat(list(from(students).select(Student.class, s -> s)
+        assertThat(list(from(students).select(s -> s)
                 .where(like(Student::getGroup, "495")).execute()), not(hasItem(students.get(0))));
 
-        assertThat(list(from(students).select(Student.class, s -> s)
+        assertThat(list(from(students).select(s -> s)
                 .where(like(Student::getGroup, "497")).execute()), hasSize(2));
-        assertThat(list(from(students).select(Student.class, s -> s)
+        assertThat(list(from(students).select(s -> s)
                 .where(like(Student::getGroup, "497")).execute()), hasItems(students.get(5), students.get(4)));
     }
 

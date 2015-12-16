@@ -1,8 +1,11 @@
 package ru.fizteh.fivt.students.pavellevap.CQL;
 
+import ru.fizteh.fivt.students.pavellevap.CQL.impl.Tuple;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.avg;
 import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.count;
@@ -16,14 +19,16 @@ import static ru.fizteh.fivt.students.pavellevap.CQL.impl.FromStmt.from;
 public class CollectionQuery {
 
     public static void main(String[] args) {
-        Iterable<Statistics> statistics = from(list(
+        List<Student> students = list(
                 student("ivanov", LocalDate.parse("1986-08-06"), "494"),
                 student("sidorov", LocalDate.parse("1986-08-06"), "495"),
                 student("smirnov", LocalDate.parse("1986-08-06"), "495"),
                 student("smith", LocalDate.parse("1986-08-06"), "495"),
                 student("golovanov", LocalDate.parse("1985-04-13"), "497"),
                 student("frolov", LocalDate.parse("1989-06-18"), "497"),
-                student("petrov", LocalDate.parse("2006-08-06"), "494")))
+                student("petrov", LocalDate.parse("2006-08-06"), "494"));
+
+        Iterable<Statistics> statistics = from(students)
                 .select(Statistics.class, Student::getGroup, count(Student::getName), avg(Student::age))
                 .where(rlike(Student::getName, ".*ov").and(s -> s.age() > 20))
                 .groupBy(Student::getGroup)
@@ -36,29 +41,18 @@ public class CollectionQuery {
                 .execute();
         System.out.println(statistics);
 
-        System.out.println(from(list(
-                student("ivanov", LocalDate.parse("1986-08-06"), "494"),
-                student("sidorov", LocalDate.parse("1986-08-06"), "495"),
-                student("smirnov", LocalDate.parse("1986-08-06"), "495"),
-                student("smith", LocalDate.parse("1986-08-06"), "495"),
-                student("golovanov", LocalDate.parse("1985-04-13"), "497"),
-                student("frolov", LocalDate.parse("1989-06-18"), "497"),
-                student("petrov", LocalDate.parse("2006-08-06"), "494"))).select(
+        System.out.println(from(students).select(
                 Student::getGroup, Student::getName).execute());
 
-        //Tuple<Student, Group> t = new Tuple<>(student("ivanov", LocalDate.parse("1089-06-18"), "495"),
-        //        new Group("495", "mentor"));
-        //System.out.println(((Function<Tuple, String>) Group).apply(t));
-
-
-
-        /*Iterable<Tuple<String, String>> mentorsByStudent =
-                from(list(student("ivanov", LocalDate.parse("1985-08-06"), "494")))
-                .join(list(new Group("494", "mr.sidorov")))
-                .on((s, g) -> Objects.equals(s.getGroup(), g.getGroup()))
+        Iterable<Tuple<String, String>> mentorsByStudent =
+                from(students)
+                .join(list(new Group("494", "mr.sidorov"),
+                           new Group("495", "mr.noname"),
+                           new Group("497", "ms.somename")))
+                .on((s, g) -> s.getGroup().equals(g.getGroup()))
                 .select(sg -> sg.getFirst().getName(), sg -> sg.getSecond().getMentor())
                 .execute();
-        System.out.println(mentorsByStudent);*/
+        System.out.println(mentorsByStudent);
     }
 
 

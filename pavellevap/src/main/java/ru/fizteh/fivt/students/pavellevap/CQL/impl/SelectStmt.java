@@ -45,11 +45,6 @@ public class SelectStmt<T, R> implements Query<R> {
         return this;
     }
 
-    @Override
-    public Stream<R> stream() {
-        throw new UnsupportedOperationException();
-    }
-
     @SafeVarargs
     public final SelectStmt<T, R> groupBy(Function<T, ?>... expressions) {
         groupByExpressions = Arrays.asList(expressions);
@@ -143,4 +138,10 @@ public class SelectStmt<T, R> implements Query<R> {
         return newResult;
     }
 
+    @Override
+    public Stream<R> stream() {
+        List<R> result = new LinkedList<>();
+        execute().forEach(result::add);
+        return result.stream();
+    }
 }

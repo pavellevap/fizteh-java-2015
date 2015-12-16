@@ -75,21 +75,45 @@ public class FromStmt<T> {
     }
 
     public <J> JoinClause<T, J> join(Iterable<J> iterable) {
-        throw new UnsupportedOperationException();
+        List<J> newData = new LinkedList<>();
+        iterable.forEach(newData::add);
+        return new JoinClause(data, newData, lastResult);
     }
 
     public <J> JoinClause<T, J> join(Stream<J> stream) {
-        throw new UnsupportedOperationException();
+        List<J> newData = new LinkedList<>();
+        stream.forEach(newData::add);
+        return new JoinClause(data, newData, lastResult);
     }
 
     public <J> JoinClause<T, J> join(Query<J> stream) {
-        throw new UnsupportedOperationException();
+        return join(stream.execute());
     }
 
-    public class JoinClause<T, J> {
+    public static class JoinClause<T, J> {
+        private List<Object> lastResult;
+        private List<T> first;
+        private List<J> second;
+
+        public JoinClause(List<T> first, List<J> second, List<Object> lastResult) {
+            this.first = new LinkedList<>();
+            first.forEach(this.first::add);
+            this.second = new LinkedList<>();
+            second.forEach(this.second::add);
+            this.lastResult = new LinkedList<>();
+            lastResult.forEach(this.lastResult::add);
+        }
 
         public FromStmt<Tuple<T, J>> on(BiPredicate<T, J> condition) {
-            throw new UnsupportedOperationException();
+            List<Tuple<T, J>> joined = new LinkedList<>();
+            for (T x : first) {
+                for (J y : second) {
+                    if (condition.test(x, y)) {
+                        joined.add(new Tuple(x, y));
+                    }
+                }
+            }
+            return new FromStmt<>(joined, lastResult);
         }
 
         public <K extends Comparable<?>> FromStmt<Tuple<T, J>> on(
