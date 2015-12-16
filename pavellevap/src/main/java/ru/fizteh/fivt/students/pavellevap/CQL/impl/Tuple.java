@@ -3,14 +3,18 @@ package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 /**
  * @author akormushin
  */
-class Tuple<F, S> {
+public class Tuple<F, S> {
 
     private final F first;
     private final S second;
 
-    Tuple(F first, S second) {
+    public Tuple(F first, S second) {
         this.first = first;
         this.second = second;
+    }
+
+    public Tuple(Tuple<F, S> tuple) {
+        this(tuple.getFirst(), tuple.getSecond());
     }
 
     public F getFirst() {

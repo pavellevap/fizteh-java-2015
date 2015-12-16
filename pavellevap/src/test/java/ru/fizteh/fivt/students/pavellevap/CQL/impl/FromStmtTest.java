@@ -34,18 +34,18 @@ public class FromStmtTest {
     @Test
     public void testSelectDistinct() {
         assertThat(list(from(data).selectDistinct(Data.class, Data::getA, Data::getB).execute()), hasSize(5));
-        assertThat(list(from(list("abra", "cadabra", "aba", "c", "aba")).selectDistinct(String.class, s -> s)
+        assertThat(list(from(list("abra", "cadabra", "aba", "c", "aba")).selectDistinct(s -> s)
                 .execute()), hasSize(4));
-        assertThat(list(from(list("abra", "cadabra", "aba", "c", "aba")).selectDistinct(String.class, s -> s)
+        assertThat(list(from(list("abra", "cadabra", "aba", "c", "aba")).selectDistinct(s -> s)
                 .execute()), containsInAnyOrder("abra", "cadabra", "aba", "c"));
     }
 
     @Test
     public void testSelect() {
         assertThat(list(from(data).select(Data.class, Data::getA, Data::getB).execute()), hasSize(9));
-        assertThat(list(from(list("abra", "cadabra", "aba", "c", "aba")).select(String.class, s -> s)
+        assertThat(list(from(list("abra", "cadabra", "aba", "c", "aba")).select(s -> s)
                 .execute()), hasSize(5));
-        assertThat(list(from(list("abra", "cadabra", "aba", "c", "aba")).select(String.class, s -> s)
+        assertThat(list(from(list("abra", "cadabra", "aba", "c", "aba")).select(s -> s)
                 .execute()), containsInAnyOrder("abra", "cadabra", "aba", "c", "aba"));
     }
 }

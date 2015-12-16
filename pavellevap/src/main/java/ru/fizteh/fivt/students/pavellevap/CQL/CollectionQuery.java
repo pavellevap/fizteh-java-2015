@@ -36,6 +36,21 @@ public class CollectionQuery {
                 .execute();
         System.out.println(statistics);
 
+        System.out.println(from(list(
+                student("ivanov", LocalDate.parse("1986-08-06"), "494"),
+                student("sidorov", LocalDate.parse("1986-08-06"), "495"),
+                student("smirnov", LocalDate.parse("1986-08-06"), "495"),
+                student("smith", LocalDate.parse("1986-08-06"), "495"),
+                student("golovanov", LocalDate.parse("1985-04-13"), "497"),
+                student("frolov", LocalDate.parse("1989-06-18"), "497"),
+                student("petrov", LocalDate.parse("2006-08-06"), "494"))).select(
+                Student::getGroup, Student::getName).execute());
+
+        //Tuple<Student, Group> t = new Tuple<>(student("ivanov", LocalDate.parse("1089-06-18"), "495"),
+        //        new Group("495", "mentor"));
+        //System.out.println(((Function<Tuple, String>) Group).apply(t));
+
+
 
         /*Iterable<Tuple<String, String>> mentorsByStudent =
                 from(list(student("ivanov", LocalDate.parse("1985-08-06"), "494")))

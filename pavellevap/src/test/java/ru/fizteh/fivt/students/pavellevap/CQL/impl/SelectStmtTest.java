@@ -61,25 +61,25 @@ public class SelectStmtTest {
 
     @Test
     public void testGroupBy() {
-        assertThat(list(from(students).select(Student.class, s -> s).groupBy(Student::getGroup)
+        assertThat(list(from(students).select(s -> s).groupBy(Student::getGroup)
                 .execute()), hasSize(3));
-        assertThat(list(from(students).select(Student.class, s -> s).groupBy(Student::getGroup)
+        assertThat(list(from(students).select(s -> s).groupBy(Student::getGroup)
                 .execute()), hasItem(hasProperty("group", is("497"))));
-        assertThat(list(from(data).select(String.class, Data::getB).groupBy(Data::getB).execute()),
+        assertThat(list(from(data).select(Data::getB).groupBy(Data::getB).execute()),
                 hasSize(4));
-        assertThat(list(from(data).select(String.class, Data::getB).groupBy(Data::getB).execute()),
+        assertThat(list(from(data).select(Data::getB).groupBy(Data::getB).execute()),
                 containsInAnyOrder("a", "b", "c", "d"));
     }
 
     @Test
     public void testOrderBy() {
-        assertThat(list(from(data).select(Data.class, s -> s)
+        assertThat(list(from(data).select(s -> s)
                 .orderBy(asc(Data::getA), desc(Data::getB)).execute()),
                 is(list(new Data(1, "d"), new Data(1, "a"), new Data(1, "a"),
                         new Data(2, "b"), new Data(2, "b"), new Data(3, "c"),
                         new Data(3, "c"), new Data(4, "d"), new Data(4, "d"))));
 
-        assertThat(list(from(data).select(Data.class, s -> s)
+        assertThat(list(from(data).select(s -> s)
                         .orderBy(desc(Data::getA), asc(Data::getB)).execute()),
                 is(list(new Data(4, "d"), new Data(4, "d"), new Data(3, "c"),
                         new Data(3, "c"), new Data(2, "b"), new Data(2, "b"),
@@ -88,38 +88,38 @@ public class SelectStmtTest {
 
     @Test
     public void testHaving() {
-        assertThat(list(from(students).select(Student.class, s -> s).having(s -> s.getGroup().equals("495"))
+        assertThat(list(from(students).select(s -> s).having(s -> s.getGroup().equals("495"))
                     .execute()), hasSize(3));
-        assertThat(list(from(students).select(Student.class, s -> s).having(s -> s.getGroup().equals("495"))
+        assertThat(list(from(students).select(s -> s).having(s -> s.getGroup().equals("495"))
                 .execute()), hasItems(student("smirnov", LocalDate.parse("1986-08-06"), "495"),
                                       student("smith", LocalDate.parse("1986-08-06"), "495"),
                                       student("sidorov", LocalDate.parse("1986-08-06"), "495")));
 
-        assertThat(list(from(data).select(Data.class, s -> s).having(s -> s.getA().equals(1))
+        assertThat(list(from(data).select(s -> s).having(s -> s.getA().equals(1))
                 .execute()), hasSize(3));
-        assertThat(list(from(data).select(Data.class, s -> s).having(s -> s.getA().equals(1))
+        assertThat(list(from(data).select(s -> s).having(s -> s.getA().equals(1))
                 .execute()), hasItems(new Data(1, "a"), new Data(1, "a"), new Data(1, "d")));
     }
 
     @Test
     public void testLimit() {
-        assertThat(list(from(data).select(Data.class, s -> s).limit(3).execute()), hasSize(3));
-        assertThat(list(from(data).select(Data.class, s -> s).limit(5).execute()), hasSize(5));
-        assertThat(list(from(data).select(Data.class, s -> s).limit(100).execute()), hasSize(9));
-        assertThat(list(from(students).select(String.class, Student::getGroup).limit(4).execute()),
+        assertThat(list(from(data).select(s -> s).limit(3).execute()), hasSize(3));
+        assertThat(list(from(data).select(s -> s).limit(5).execute()), hasSize(5));
+        assertThat(list(from(data).select(s -> s).limit(100).execute()), hasSize(9));
+        assertThat(list(from(students).select(Student::getGroup).limit(4).execute()),
                 hasSize(4));
     }
 
     @Test
     public void testUnion() {
         assertThat(list(from(list(data.get(0), data.get(1), data.get(2), data.get(3)))
-                .select(Data.class, s -> s).union()
+                .select(s -> s).union()
                 .from(list(data.get(4), data.get(5), data.get(6), data.get(7), data.get(8)))
-                .select(Data.class, s -> s).execute()), hasItems((Data[]) data.toArray()));
+                .select(s -> s).execute()), hasItems((Data[]) data.toArray()));
 
-        assertThat(list(from(students).selectDistinct(String.class, Student::getGroup)
+        assertThat(list(from(students).selectDistinct(Student::getGroup)
                 .having(s -> s.equals("494")).union()
-                .from(students).selectDistinct(String.class, Student::getGroup)
+                .from(students).selectDistinct(Student::getGroup)
                 .having(s -> s.equals("495")).execute()), is(list("494", "495")));
     }
 }
