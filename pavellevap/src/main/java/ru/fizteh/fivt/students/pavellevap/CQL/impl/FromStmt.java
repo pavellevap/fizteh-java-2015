@@ -2,6 +2,7 @@ package ru.fizteh.fivt.students.pavellevap.CQL.impl;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.*;
@@ -119,7 +120,16 @@ public class FromStmt<T> {
         public <K extends Comparable<?>> FromStmt<Tuple<T, J>> on(
                 Function<T, K> leftKey,
                 Function<J, K> rightKey) {
-            throw new UnsupportedOperationException();
+            List<Tuple<T, J>> joined = new LinkedList<>();
+            Map<K, List<T>> leftMap = first.stream().collect(Collectors.groupingBy(leftKey));
+            Map<K, List<J>> rightMap = second.stream().collect(Collectors.groupingBy(rightKey));
+            leftMap.forEach((key, value) -> {
+                if (rightMap.containsKey(key)) {
+                    value.forEach(x -> rightMap.get(key).forEach(y -> joined.add(new Tuple(x, y))));
+                }
+            });
+
+            return new FromStmt<>(joined, lastResult);
         }
     }
 }

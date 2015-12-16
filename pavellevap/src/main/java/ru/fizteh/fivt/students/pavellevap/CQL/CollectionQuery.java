@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.avg;
 import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.count;
@@ -49,10 +51,13 @@ public class CollectionQuery {
                 .join(list(new Group("494", "mr.sidorov"),
                            new Group("495", "mr.noname"),
                            new Group("497", "ms.somename")))
-                .on((s, g) -> s.getGroup().equals(g.getGroup()))
+                .on(Student::getGroup, Group::getGroup)
                 .select(sg -> sg.getFirst().getName(), sg -> sg.getSecond().getMentor())
                 .execute();
         System.out.println(mentorsByStudent);
+
+        Map<String, List<Student>> map = students.stream().collect(Collectors.groupingBy(Student::getGroup));
+        System.out.println(map);
     }
 
 
