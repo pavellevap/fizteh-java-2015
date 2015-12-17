@@ -2,15 +2,20 @@ package ru.fizteh.fivt.students.pavellevap.MiniORM;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.sql.*;
 import java.util.*;
+import java.util.Date;
+import java.util.stream.Collectors;
 
-public class DatabaseService<T> {
+public class DatabaseService<T> implements Closeable {
     private Class<T> clazz;
     private String tableName;
     private List<Field> columns;
+    private Field primaryKey;
     private JdbcConnectionPool pool;
 
     public static String getGoodName(String name) throws IllegalArgumentException {
@@ -55,6 +60,23 @@ public class DatabaseService<T> {
         return tableName;
     }
 
+    public static String getColumnName(Field column) {
+        if (!column.isAnnotationPresent(Column.class)) {
+            throw new IllegalArgumentException("Column field must have @Column annotation");
+        }
+
+        String columnName = column.getAnnotation(Column.class).name();
+        if (columnName.equals("")) {
+            columnName = getGoodName(column.getName());
+        }
+
+        if (!isNameGood(columnName))  {
+            throw new IllegalArgumentException("Wrong column name");
+        }
+
+        return columnName;
+    }
+
     private void validateTableClass() {
         tableName = getTableName(clazz);
 
@@ -62,7 +84,8 @@ public class DatabaseService<T> {
             throw new IllegalArgumentException("Table class must have @Table annotation");
         }
 
-        Field primaryKey = null;
+        columns = new ArrayList<>();
+        primaryKey = null;
         for (Field field : clazz.getFields()) {
             if (field.isAnnotationPresent(Column.class)) {
                 columns.forEach(column -> {
@@ -99,7 +122,7 @@ public class DatabaseService<T> {
         }
 
         if (path == null) {
-            pool = JdbcConnectionPool.create("jdbc:h2:test","sa", "");
+            pool = JdbcConnectionPool.create("jdbc:h2:test", "sa", "");
         } else {
             Properties properties = new Properties();
             try (InputStream inputStream = this.getClass().getResourceAsStream(path)) {
@@ -109,6 +132,46 @@ public class DatabaseService<T> {
             pool = JdbcConnectionPool.create(properties.getProperty("url"),
                     properties.getProperty("username"),
                     properties.getProperty("password"));
+        }
+    }
+
+    public static String getH2TypeName(Class clazz) {
+        if (clazz.isArray()) {
+            return "ARRAY";
+        } else if (clazz.equals(Integer.class)) {
+            return "INTEGER";
+        } else if (clazz.equals(Byte.class)) {
+            return "TINYINT";
+        } else if (clazz.equals(Short.class)) {
+            return "SMALLINT";
+        } else if (clazz.equals(Long.class)) {
+            return "BIGINT";
+        } else if (clazz.equals(Boolean.class)) {
+            return "BOOLEAN";
+        } else if (clazz.equals(Float.class)) {
+            return "FLOAT";
+        } else if (clazz.equals(Double.class)) {
+            return "DOUBLE";
+        } else if (clazz.equals(Character.class)) {
+            return "CHAR";
+        } else if (clazz.equals(Time.class)) {
+            return "TIME";
+        } else if (clazz.equals(Date.class)) {
+            return "DATE";
+        } else if (clazz.equals(String.class)) {
+            return "CLOB";
+        } else if (clazz.equals(UUID.class)) {
+            return "UUID";
+        } else if (clazz.equals(Timestamp.class)) {
+            return "TIMESTAMP";
+        } else {
+            return "OTHER";
+        }
+    }
+
+    private void execute(String query) throws SQLException {
+        try (Connection connection = pool.getConnection()) {
+            connection.createStatement().execute(query);
         }
     }
 
@@ -123,5 +186,53 @@ public class DatabaseService<T> {
         connectToDatabase(properties);
     }
 
+    void createTable() throws SQLException {
+        List<String> columnsDescriptions = new LinkedList<>();
 
+        for (Field column : columns) {
+            StringBuilder columnDescription = new StringBuilder();
+
+            columnDescription.append(getColumnName(column)).append(" ").append(getH2TypeName(column.getType()));
+            if (column == primaryKey) {
+                columnDescription.append(" PRIMARY KEY");
+            }
+
+            columnsDescriptions.add(columnDescription.toString());
+        }
+
+        String query = columnsDescriptions.stream().collect(
+                Collectors.joining(", ", "CREATE TABLE IF NOT EXISTS (", ")"));
+        execute(query);
+    }
+
+    void dropTable() throws SQLException {
+        execute("DROP TABLE IF EXISTS " + tableName);
+    }
+
+    public void insert(T record) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void delete(T record) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void update(T record) {
+        throw new UnsupportedOperationException();
+    }
+
+    public List<T> queryForAll() {
+        throw new UnsupportedOperationException();
+    }
+
+    public <K> T queryById(K key) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (pool != null) {
+            pool.dispose();
+        }
+    }
 }
