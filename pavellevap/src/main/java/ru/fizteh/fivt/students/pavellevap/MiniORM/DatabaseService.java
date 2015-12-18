@@ -1,20 +1,24 @@
 package ru.fizteh.fivt.students.pavellevap.MiniORM;
 
-import org.h2.jdbcx.JdbcConnectionPool;
-
+import java.sql.*;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Date;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.sql.*;
 import java.util.*;
-import java.util.Date;
 import java.util.stream.Collectors;
+
+import ru.fizteh.fivt.students.pavellevap.MiniORM.Annotations.*;
+import ru.fizteh.fivt.students.pavellevap.MiniORM.Exceptions.*;
+
+import org.h2.jdbcx.JdbcConnectionPool;
 
 public class DatabaseService<T> implements Closeable {
     private Class<T> clazz;
     private String tableName;
     private List<Field> columns;
+    private List<String> columnNames;
     private Field primaryKey;
     private JdbcConnectionPool pool;
 
@@ -95,10 +99,6 @@ public class DatabaseService<T> implements Closeable {
                     }
                 });
 
-                if (!isNameGood(field.getAnnotation(Column.class).name())) {
-                    throw new IllegalArgumentException("Column name must be good");
-                }
-
                 if (field.isAnnotationPresent(PrimaryKey.class)) {
                     if (primaryKey == null) {
                         primaryKey = field;
@@ -108,6 +108,7 @@ public class DatabaseService<T> implements Closeable {
                 }
 
                 columns.add(field);
+                columnNames.add(getColumnName(field));
             } else if (field.isAnnotationPresent(PrimaryKey.class)) {
                 throw new IllegalArgumentException("Primary key must be column");
             }
@@ -169,9 +170,21 @@ public class DatabaseService<T> implements Closeable {
         }
     }
 
-    private void execute(String query) throws SQLException {
+    private ResultSet execute(String query) throws ORMException {
         try (Connection connection = pool.getConnection()) {
-            connection.createStatement().execute(query);
+            return connection.createStatement().executeQuery(query);
+        } catch (Exception ex) {
+            throw new ORMException(ex.getMessage());
+        }
+    }
+
+    private ResultSet execute(PreparedStatementGenerator statementGenerator) throws ORMException {
+        try (Connection connection = pool.getConnection()) {
+            PreparedStatement statement = statementGenerator.generateStatement(connection);
+            statement.execute();
+            return statement.getResultSet();
+        } catch (Exception ex) {
+            throw new ORMException(ex.getMessage());
         }
     }
 
@@ -186,7 +199,113 @@ public class DatabaseService<T> implements Closeable {
         connectToDatabase(properties);
     }
 
-    void createTable() throws SQLException {
+    public <K> T queryById(K key) throws ORMException {
+        if (primaryKey == null) {
+            throw new IllegalArgumentException("Can't retrieve from table without primary key");
+        }
+
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT * FROM ").append(tableName).append(" WHERE ")
+                .append(primaryKey.getName()).append(" = ?");
+
+        ResultSet resultSet = execute(connection -> {
+            PreparedStatement statement = connection.prepareStatement(query.toString());
+            statement.setString(1, key.toString());
+            return statement;
+        });
+
+        try {
+            resultSet.next();
+            T record = clazz.newInstance();
+            for (int i = 0; i < columns.size(); i++) {
+                columns.get(i).set(record, resultSet.getObject(i + 1));
+            }
+            return record;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalArgumentException("Wrong table class");
+        } catch (SQLException ex) {
+            throw new ORMException(ex.getMessage());
+        }
+    }
+
+    public List<T> queryForAll() throws ORMException {
+        List<T> result = new LinkedList<>();
+
+        ResultSet resultSet = execute("SELECT * FROM " + tableName);
+
+        try {
+            while (resultSet.next()) {
+                T record = clazz.newInstance();
+                for (int i = 0; i < columns.size(); i++) {
+                    columns.get(i).set(record, resultSet.getObject(i + 1));
+                }
+                result.add(record);
+            }
+        } catch (InstantiationException | IllegalAccessException ex) {
+            throw new IllegalArgumentException("Wrong table class");
+        } catch (SQLException ex) {
+            throw new ORMException(ex.getMessage());
+        }
+
+        return result;
+    }
+
+    public void insert(T record) throws ORMException {
+        StringBuilder query = new StringBuilder();
+
+        query.append(columnNames.stream().collect(Collectors.
+                joining(", ", "INSERT INTO " + tableName + "(", ")")));
+
+        List<String> values = new LinkedList<>();
+        columns.forEach(column -> values.add("?"));
+
+        query.append(values.stream().collect(Collectors.
+                joining(", ", "VALUES (", ")")));
+
+        execute(connection -> {
+            PreparedStatement statement = connection.prepareStatement(query.toString());
+            for (int i = 0; i < columns.size(); i++) {
+                statement.setObject(i + 1, columns.get(i).get(record));
+            }
+            return statement;
+        });
+    }
+
+    public void update(T record) throws ORMException {
+        if (primaryKey == null) {
+            throw new IllegalArgumentException("Can't update table without primary key");
+        }
+
+        String query = columnNames.stream().collect(Collectors.joining(" = ?, ", "UPDATE " + tableName + " SET ",
+                " = ? WHERE " + getColumnName(primaryKey) + " = ?"));
+
+        execute(connection -> {
+            PreparedStatement statement = connection.prepareStatement(query);
+            for (int i = 0; i < columns.size(); i++) {
+                statement.setObject(i + 1, columns.get(i).get(record));
+            }
+            statement.setObject(columns.size() + 1, primaryKey.get(record));
+            return statement;
+        });
+    }
+
+    public void delete(T record) throws ORMException {
+        if (primaryKey == null) {
+            throw new IllegalArgumentException("Can't delete from table without primary key");
+        }
+
+        StringBuilder query = new StringBuilder();
+        query.append("DELETE FROM ").append(tableName).append(" WHERE ")
+                .append(getColumnName(primaryKey)).append(" = ?");
+
+        execute(connection -> {
+            PreparedStatement statement = connection.prepareStatement(query.toString());
+            statement.setObject(1, primaryKey.get(record));
+            return statement;
+        });
+    }
+
+    void createTable() throws ORMException {
         List<String> columnsDescriptions = new LinkedList<>();
 
         for (Field column : columns) {
@@ -205,28 +324,8 @@ public class DatabaseService<T> implements Closeable {
         execute(query);
     }
 
-    void dropTable() throws SQLException {
+    void dropTable() throws ORMException {
         execute("DROP TABLE IF EXISTS " + tableName);
-    }
-
-    public void insert(T record) {
-        throw new UnsupportedOperationException();
-    }
-
-    public void delete(T record) {
-        throw new UnsupportedOperationException();
-    }
-
-    public void update(T record) {
-        throw new UnsupportedOperationException();
-    }
-
-    public List<T> queryForAll() {
-        throw new UnsupportedOperationException();
-    }
-
-    public <K> T queryById(K key) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -1,4 +1,4 @@
-package ru.fizteh.fivt.students.pavellevap.MiniORM;
+package ru.fizteh.fivt.students.pavellevap.MiniORM.Annotations;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
