@@ -28,7 +28,7 @@ public class DatabaseService<T> implements Closeable {
         }
 
         if (!name.matches("[A-Za-z_][A-Za-z0-9_]*")) {
-            throw new IllegalArgumentException("Некорректное имя");
+            throw new IllegalArgumentException("Incorrect name");
         }
 
         StringBuilder goodName = new StringBuilder();
@@ -44,7 +44,7 @@ public class DatabaseService<T> implements Closeable {
     }
 
     public static boolean isNameGood(String name) {
-        return name.matches("[a-z0-9_]*");
+        return name.matches("[a-z_][a-z0-9_]*");
     }
 
     public static <R> String getTableName(Class<R> clazz) {
@@ -89,12 +89,13 @@ public class DatabaseService<T> implements Closeable {
         }
 
         columns = new ArrayList<>();
+        columnNames = new ArrayList<>();
         primaryKey = null;
-        for (Field field : clazz.getFields()) {
+        for (Field field : clazz.getDeclaredFields()) {
             if (field.isAnnotationPresent(Column.class)) {
                 columns.forEach(column -> {
-                    if (column.getAnnotation(Column.class).name().equals(
-                            field.getAnnotation(Column.class).name())) {
+                    if (getColumnName(column).equals(
+                            getColumnName(field))) {
                         throw new IllegalArgumentException("Column name must be unique");
                     }
                 });
@@ -116,14 +117,8 @@ public class DatabaseService<T> implements Closeable {
     }
 
     private void connectToDatabase(String path) throws IOException {
-        try {
-            Class.forName("org.h2.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("No H2 driver found");
-        }
-
         if (path == null) {
-            pool = JdbcConnectionPool.create("jdbc:h2:test", "sa", "");
+            pool = JdbcConnectionPool.create("jdbc:h2:~/test", "test", "test");
         } else {
             Properties properties = new Properties();
             try (InputStream inputStream = this.getClass().getResourceAsStream(path)) {
@@ -170,24 +165,6 @@ public class DatabaseService<T> implements Closeable {
         }
     }
 
-    private ResultSet execute(String query) throws ORMException {
-        try (Connection connection = pool.getConnection()) {
-            return connection.createStatement().executeQuery(query);
-        } catch (Exception ex) {
-            throw new ORMException(ex.getMessage());
-        }
-    }
-
-    private ResultSet execute(PreparedStatementGenerator statementGenerator) throws ORMException {
-        try (Connection connection = pool.getConnection()) {
-            PreparedStatement statement = statementGenerator.generateStatement(connection);
-            statement.execute();
-            return statement.getResultSet();
-        } catch (Exception ex) {
-            throw new ORMException(ex.getMessage());
-        }
-    }
-
     public DatabaseService(Class<T> clazz) throws IOException {
         this(clazz, null);
     }
@@ -199,6 +176,23 @@ public class DatabaseService<T> implements Closeable {
         connectToDatabase(properties);
     }
 
+    private void setRecord(T record, ResultSet resultSet) throws ORMException {
+        try {
+            for (int i = 0; i < columns.size(); i++) {
+                if (columns.get(i).getClass().isAssignableFrom(Number.class)) {
+                    columns.get(i).set(record, resultSet.getLong(i + 1));
+                } else if (columns.get(i).getType() == String.class) {
+                    Clob str = resultSet.getClob(i + 1);
+                    columns.get(i).set(record, str.getSubString(1, (int) str.length()));
+                } else {
+                    columns.get(i).set(record, resultSet.getObject(i + 1));
+                }
+            }
+        } catch (Exception ex) {
+            throw new ORMException(ex.getMessage());
+        }
+    }
+
     public <K> T queryById(K key) throws ORMException {
         if (primaryKey == null) {
             throw new IllegalArgumentException("Can't retrieve from table without primary key");
@@ -208,22 +202,18 @@ public class DatabaseService<T> implements Closeable {
         query.append("SELECT * FROM ").append(tableName).append(" WHERE ")
                 .append(primaryKey.getName()).append(" = ?");
 
-        ResultSet resultSet = execute(connection -> {
+        try (Connection connection = pool.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(query.toString());
             statement.setString(1, key.toString());
-            return statement;
-        });
+            statement.execute();
+            ResultSet resultSet = statement.getResultSet();
 
-        try {
             resultSet.next();
             T record = clazz.newInstance();
-            for (int i = 0; i < columns.size(); i++) {
-                columns.get(i).set(record, resultSet.getObject(i + 1));
-            }
+            setRecord(record, resultSet);
+
             return record;
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new IllegalArgumentException("Wrong table class");
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             throw new ORMException(ex.getMessage());
         }
     }
@@ -231,19 +221,16 @@ public class DatabaseService<T> implements Closeable {
     public List<T> queryForAll() throws ORMException {
         List<T> result = new LinkedList<>();
 
-        ResultSet resultSet = execute("SELECT * FROM " + tableName);
+        try (Connection connection = pool.getConnection()) {
+            Statement statement = connection.createStatement();
 
-        try {
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + tableName);
             while (resultSet.next()) {
                 T record = clazz.newInstance();
-                for (int i = 0; i < columns.size(); i++) {
-                    columns.get(i).set(record, resultSet.getObject(i + 1));
-                }
+                setRecord(record, resultSet);
                 result.add(record);
             }
-        } catch (InstantiationException | IllegalAccessException ex) {
-            throw new IllegalArgumentException("Wrong table class");
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             throw new ORMException(ex.getMessage());
         }
 
@@ -254,7 +241,7 @@ public class DatabaseService<T> implements Closeable {
         StringBuilder query = new StringBuilder();
 
         query.append(columnNames.stream().collect(Collectors.
-                joining(", ", "INSERT INTO " + tableName + "(", ")")));
+                joining(", ", "INSERT INTO " + tableName + " (", ")")));
 
         List<String> values = new LinkedList<>();
         columns.forEach(column -> values.add("?"));
@@ -262,13 +249,15 @@ public class DatabaseService<T> implements Closeable {
         query.append(values.stream().collect(Collectors.
                 joining(", ", "VALUES (", ")")));
 
-        execute(connection -> {
+        try (Connection connection = pool.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(query.toString());
             for (int i = 0; i < columns.size(); i++) {
                 statement.setObject(i + 1, columns.get(i).get(record));
             }
-            return statement;
-        });
+            statement.execute();
+        } catch (Exception ex) {
+            throw new ORMException(ex.getMessage());
+        }
     }
 
     public void update(T record) throws ORMException {
@@ -279,14 +268,16 @@ public class DatabaseService<T> implements Closeable {
         String query = columnNames.stream().collect(Collectors.joining(" = ?, ", "UPDATE " + tableName + " SET ",
                 " = ? WHERE " + getColumnName(primaryKey) + " = ?"));
 
-        execute(connection -> {
+        try (Connection connection = pool.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(query);
             for (int i = 0; i < columns.size(); i++) {
                 statement.setObject(i + 1, columns.get(i).get(record));
             }
             statement.setObject(columns.size() + 1, primaryKey.get(record));
-            return statement;
-        });
+            statement.execute();
+        } catch (Exception ex) {
+            throw new ORMException(ex.getMessage());
+        }
     }
 
     public void delete(T record) throws ORMException {
@@ -298,11 +289,13 @@ public class DatabaseService<T> implements Closeable {
         query.append("DELETE FROM ").append(tableName).append(" WHERE ")
                 .append(getColumnName(primaryKey)).append(" = ?");
 
-        execute(connection -> {
+        try (Connection connection = pool.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(query.toString());
             statement.setObject(1, primaryKey.get(record));
-            return statement;
-        });
+            statement.execute();
+        } catch (Exception ex) {
+            throw new ORMException(ex.getMessage());
+        }
     }
 
     void createTable() throws ORMException {
@@ -312,7 +305,7 @@ public class DatabaseService<T> implements Closeable {
             StringBuilder columnDescription = new StringBuilder();
 
             columnDescription.append(getColumnName(column)).append(" ").append(getH2TypeName(column.getType()));
-            if (column == primaryKey) {
+            if (column.equals(primaryKey)) {
                 columnDescription.append(" PRIMARY KEY");
             }
 
@@ -320,12 +313,24 @@ public class DatabaseService<T> implements Closeable {
         }
 
         String query = columnsDescriptions.stream().collect(
-                Collectors.joining(", ", "CREATE TABLE IF NOT EXISTS (", ")"));
-        execute(query);
+                Collectors.joining(", ", "CREATE TABLE IF NOT EXISTS " + tableName + " (", ")"));
+
+        try (Connection connection = pool.getConnection()) {
+            Statement statement = connection.createStatement();
+            statement.execute(query);
+        } catch (Exception ex) {
+            throw new ORMException(ex.getMessage());
+        }
     }
 
     void dropTable() throws ORMException {
-        execute("DROP TABLE IF EXISTS " + tableName);
+        try (Connection connection = pool.getConnection()) {
+            Statement statement = connection.createStatement();
+            statement.execute("DROP TABLE IF EXISTS " + tableName);
+        } catch (Exception ex) {
+            throw new ORMException(ex.getMessage());
+        }
+
     }
 
     @Override
