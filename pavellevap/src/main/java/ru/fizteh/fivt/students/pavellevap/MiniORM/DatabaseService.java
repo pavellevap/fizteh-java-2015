@@ -206,13 +206,14 @@ public class DatabaseService<T> implements Closeable {
             PreparedStatement statement = connection.prepareStatement(query.toString());
             statement.setString(1, key.toString());
             statement.execute();
-            ResultSet resultSet = statement.getResultSet();
 
-            resultSet.next();
-            T record = clazz.newInstance();
-            setRecord(record, resultSet);
+            try (ResultSet resultSet = statement.getResultSet()) {
+                resultSet.next();
+                T record = clazz.newInstance();
+                setRecord(record, resultSet);
 
-            return record;
+                return record;
+            }
         } catch (Exception ex) {
             throw new ORMException(ex.getMessage());
         }
@@ -224,11 +225,12 @@ public class DatabaseService<T> implements Closeable {
         try (Connection connection = pool.getConnection()) {
             Statement statement = connection.createStatement();
 
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + tableName);
-            while (resultSet.next()) {
-                T record = clazz.newInstance();
-                setRecord(record, resultSet);
-                result.add(record);
+            try (ResultSet resultSet = statement.executeQuery("SELECT * FROM " + tableName)) {
+                while (resultSet.next()) {
+                    T record = clazz.newInstance();
+                    setRecord(record, resultSet);
+                    result.add(record);
+                }
             }
         } catch (Exception ex) {
             throw new ORMException(ex.getMessage());
