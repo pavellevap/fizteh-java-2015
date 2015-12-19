@@ -5,10 +5,7 @@ import ru.fizteh.fivt.students.pavellevap.CQL.impl.Tuple;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.avg;
 import static ru.fizteh.fivt.students.pavellevap.CQL.Aggregates.count;
